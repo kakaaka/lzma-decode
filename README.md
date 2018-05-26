@@ -6,7 +6,8 @@ The C# implementation of LZMA SDK is too slow.
 
 
 In Unity use like this:
-
+ 
+```c#
 using System;
 using System.Runtime.InteropServices;
 
@@ -32,3 +33,4 @@ public class Lzma
         return outbuffer;
     }
 }
+```
