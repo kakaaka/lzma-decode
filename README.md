@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 
 public class Lzma
 {
-    [DllImport("lzma", EntryPoint = "decompress")]
+    [DllImport("lzma", EntryPoint = "LzmaUncompress")]
     internal static extern int LzmaUncompress(IntPtr source, int sourceLen, IntPtr dest, int destLen);
 
     public static byte[] Decode(byte[] inBuffer)
