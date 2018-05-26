@@ -120,7 +120,6 @@
   <ItemGroup>
     <ClCompile Include="7zip\Alloc.c" />
     <ClCompile Include="7zip\LzmaDec.c" />
-    <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="lzma.cpp" />
   </ItemGroup>
   <ItemGroup>
