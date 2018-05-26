@@ -18,6 +18,18 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lzma\7zip\Alloc.c" />
+    <ClCompile Include="..\..\lzma\7zip\LzmaDec.c" />
+    <ClCompile Include="..\..\lzma\lzma.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lzma\7zip\7zTypes.h" />
+    <ClInclude Include="..\..\lzma\7zip\Alloc.h" />
+    <ClInclude Include="..\..\lzma\7zip\Compiler.h" />
+    <ClInclude Include="..\..\lzma\7zip\LzmaDec.h" />
+    <ClInclude Include="..\..\lzma\7zip\Precomp.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{88734E9A-617F-4F62-BACC-A1C7E1779782}</ProjectGuid>
@@ -117,18 +129,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="7zip\Alloc.c" />
-    <ClCompile Include="7zip\LzmaDec.c" />
-    <ClCompile Include="lzma.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="7zip\7zTypes.h" />
-    <ClInclude Include="7zip\Alloc.h" />
-    <ClInclude Include="7zip\Compiler.h" />
-    <ClInclude Include="7zip\LzmaDec.h" />
-    <ClInclude Include="7zip\Precomp.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
