@@ -1,4 +1,4 @@
-# lzma
+# lzma-decode
 lzma decode part of LZMA SDK
  
 Used for Unity Plugin.<br>
