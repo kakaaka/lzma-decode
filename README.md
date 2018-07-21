@@ -13,7 +13,11 @@ using System.Runtime.InteropServices;
 
 public class Lzma
 {
+#if (UNITY_IOS || UNITY_IPHONE)
+    [DllImport("__Internal")]
+#else
     [DllImport("lzma", EntryPoint = "LzmaUncompress")]
+#endif
     internal static extern int LzmaUncompress(IntPtr source, int sourceLen, IntPtr dest, int destLen);
 
     public static byte[] Decode(byte[] inBuffer)
