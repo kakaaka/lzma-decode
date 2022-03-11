@@ -13,14 +13,15 @@ using System.Runtime.InteropServices;
 
 public class Lzma
 {
+   public delegate void CallbackDelegate(int insize, int size);
 #if (UNITY_IOS || UNITY_IPHONE)
     [DllImport("__Internal")]
 #else
     [DllImport("lzma", EntryPoint = "LzmaUncompress")]
 #endif
-    internal static extern int LzmaUncompress(IntPtr source, int sourceLen, IntPtr dest, int destLen);
+    internal static extern int LzmaUncompress(IntPtr source, int sourceLen, IntPtr dest, int destLen, CallbackDelegate uprogress);
 
-    public static byte[] Decode(byte[] inBuffer)
+    public static byte[] Decode(byte[] inBuffer,CallbackDelegate uprogress = null)
     {
         GCHandle cbuf = GCHandle.Alloc(inBuffer, GCHandleType.Pinned);
 
@@ -29,7 +30,7 @@ public class Lzma
 
         GCHandle obuf = GCHandle.Alloc(outbuffer, GCHandleType.Pinned);
 
-        LzmaUncompress(cbuf.AddrOfPinnedObject(), inBuffer.Length, obuf.AddrOfPinnedObject(), uncompressedSize);
+        LzmaUncompress(cbuf.AddrOfPinnedObject(), inBuffer.Length, obuf.AddrOfPinnedObject(), uncompressedSize, uprogress);
 
         cbuf.Free();
         obuf.Free();
