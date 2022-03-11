@@ -11,9 +11,9 @@
 
 extern "C"
 {
-	EXPORT_API int LzmaUncompress(Byte* src, SizeT srcLen, Byte* dest, SizeT destLen)
+	EXPORT_API int LzmaUncompress(Byte* src, SizeT srcLen, Byte* dest, SizeT destLen, Decode_Callback cb)
 	{
 		ELzmaStatus status;
-		return LzmaDecode(dest, &destLen, src + LZMA_PROPS_SIZE + 8, &srcLen, src, LZMA_PROPS_SIZE, LZMA_FINISH_ANY, &status, &g_Alloc);
+		return LzmaDecode(dest, &destLen, src + LZMA_PROPS_SIZE + 8, &srcLen, src, LZMA_PROPS_SIZE, LZMA_FINISH_ANY, &status, &g_Alloc, cb);
 	}
 }

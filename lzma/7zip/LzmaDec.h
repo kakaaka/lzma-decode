@@ -50,6 +50,15 @@ SRes LzmaProps_Decode(CLzmaProps *p, const Byte *data, unsigned size);
 
 #define LZMA_REQUIRED_INPUT_MAX 20
 
+#ifdef  _WIN32 
+#define STD_CALL __stdcall *
+#else
+#define STD_CALL *
+#endif
+
+
+typedef void(STD_CALL Decode_Callback)(SizeT inSize, SizeT ousSize);
+
 typedef struct
 {
   /* Don't change this structure. ASM code can use it. */
@@ -184,7 +193,7 @@ Returns:
 */
 
 SRes LzmaDec_DecodeToDic(CLzmaDec *p, SizeT dicLimit,
-    const Byte *src, SizeT *srcLen, ELzmaFinishMode finishMode, ELzmaStatus *status);
+    const Byte *src, SizeT *srcLen, ELzmaFinishMode finishMode, ELzmaStatus *status, Decode_Callback cb);
 
 
 /* ---------- Buffer Interface ---------- */
@@ -201,7 +210,7 @@ finishMode:
 */
 
 SRes LzmaDec_DecodeToBuf(CLzmaDec *p, Byte *dest, SizeT *destLen,
-    const Byte *src, SizeT *srcLen, ELzmaFinishMode finishMode, ELzmaStatus *status);
+    const Byte *src, SizeT *srcLen, ELzmaFinishMode finishMode, ELzmaStatus *status, Decode_Callback cb);
 
 
 /* ---------- One Call Interface ---------- */
@@ -227,7 +236,7 @@ Returns:
 
 SRes LzmaDecode(Byte *dest, SizeT *destLen, const Byte *src, SizeT *srcLen,
     const Byte *propData, unsigned propSize, ELzmaFinishMode finishMode,
-    ELzmaStatus *status, ISzAllocPtr alloc);
+    ELzmaStatus *status, ISzAllocPtr alloc, Decode_Callback cb);
 
 EXTERN_C_END
 

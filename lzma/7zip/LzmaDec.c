@@ -210,12 +210,12 @@ Out:
 
 #ifdef _LZMA_DEC_OPT
 
-int MY_FAST_CALL LZMA_DECODE_REAL(CLzmaDec *p, SizeT limit, const Byte *bufLimit);
+int MY_FAST_CALL LZMA_DECODE_REAL(CLzmaDec *p, SizeT limit, const Byte *bufLimit, Decode_Callback cb);
 
 #else
 
 static
-int MY_FAST_CALL LZMA_DECODE_REAL(CLzmaDec *p, SizeT limit, const Byte *bufLimit)
+int MY_FAST_CALL LZMA_DECODE_REAL(CLzmaDec *p, SizeT limit, const Byte *bufLimit, Decode_Callback cb)
 {
   CLzmaProb *probs = GET_PROBS;
   unsigned state = (unsigned)p->state;
@@ -236,6 +236,13 @@ int MY_FAST_CALL LZMA_DECODE_REAL(CLzmaDec *p, SizeT limit, const Byte *bufLimit
   UInt32 range = p->range;
   UInt32 code = p->code;
 
+
+  if (cb != NULL)
+  {
+	  cb(p->processedPos, p->dicBufSize);
+  }
+  
+  unsigned callCount = 0;
   do
   {
     CLzmaProb *prob;
@@ -541,6 +548,16 @@ int MY_FAST_CALL LZMA_DECODE_REAL(CLzmaDec *p, SizeT limit, const Byte *bufLimit
 
         processedPos += curLen;
 
+		callCount = callCount + 1;
+		if (callCount >= 68000)
+		{
+			callCount = 0;
+			if (cb != NULL)
+			{
+				cb(processedPos, p->dicBufSize);
+			}
+		}
+
         len -= curLen;
         if (curLen <= dicBufSize - pos)
         {
@@ -621,7 +638,7 @@ static void MY_FAST_CALL LzmaDec_WriteRem(CLzmaDec *p, SizeT limit)
   #error Stop_Compiling_Bad_LZMA_Check
 #endif
 
-static int MY_FAST_CALL LzmaDec_DecodeReal2(CLzmaDec *p, SizeT limit, const Byte *bufLimit)
+static int MY_FAST_CALL LzmaDec_DecodeReal2(CLzmaDec *p, SizeT limit, const Byte *bufLimit, Decode_Callback cb)
 {
   do
   {
@@ -636,8 +653,14 @@ static int MY_FAST_CALL LzmaDec_DecodeReal2(CLzmaDec *p, SizeT limit, const Byte
         if (p->code >= kBadRepCode)
           return SZ_ERROR_DATA;
     }
+	
+	if (cb != NULL)
+	{
+		cb(p->processedPos, p->dicBufSize);
+	}
+	
 
-    RINOK(LZMA_DECODE_REAL(p, limit2, bufLimit));
+    RINOK(LZMA_DECODE_REAL(p, limit2, bufLimit,cb));
     
     if (p->checkDicSize == 0 && p->processedPos >= p->prop.dicSize)
       p->checkDicSize = p->prop.dicSize;
@@ -873,7 +896,7 @@ void LzmaDec_Init(CLzmaDec *p)
 
 
 SRes LzmaDec_DecodeToDic(CLzmaDec *p, SizeT dicLimit, const Byte *src, SizeT *srcLen,
-    ELzmaFinishMode finishMode, ELzmaStatus *status)
+    ELzmaFinishMode finishMode, ELzmaStatus *status, Decode_Callback cb)
 {
   SizeT inSize = *srcLen;
   (*srcLen) = 0;
@@ -964,7 +987,7 @@ SRes LzmaDec_DecodeToDic(CLzmaDec *p, SizeT dicLimit, const Byte *src, SizeT *sr
         else
           bufLimit = src + inSize - LZMA_REQUIRED_INPUT_MAX;
         p->buf = src;
-        if (LzmaDec_DecodeReal2(p, dicLimit, bufLimit) != 0)
+        if (LzmaDec_DecodeReal2(p, dicLimit, bufLimit,cb) != 0)
           return SZ_ERROR_DATA;
         processed = (SizeT)(p->buf - src);
         (*srcLen) += processed;
@@ -993,7 +1016,8 @@ SRes LzmaDec_DecodeToDic(CLzmaDec *p, SizeT dicLimit, const Byte *src, SizeT *sr
           }
         }
         p->buf = p->tempBuf;
-        if (LzmaDec_DecodeReal2(p, dicLimit, p->buf) != 0)
+
+        if (LzmaDec_DecodeReal2(p, dicLimit, p->buf,cb) != 0)
           return SZ_ERROR_DATA;
         
         {
@@ -1019,7 +1043,7 @@ SRes LzmaDec_DecodeToDic(CLzmaDec *p, SizeT dicLimit, const Byte *src, SizeT *sr
 }
 
 
-SRes LzmaDec_DecodeToBuf(CLzmaDec *p, Byte *dest, SizeT *destLen, const Byte *src, SizeT *srcLen, ELzmaFinishMode finishMode, ELzmaStatus *status)
+SRes LzmaDec_DecodeToBuf(CLzmaDec *p, Byte *dest, SizeT *destLen, const Byte *src, SizeT *srcLen, ELzmaFinishMode finishMode, ELzmaStatus *status, Decode_Callback cb)
 {
   SizeT outSize = *destLen;
   SizeT inSize = *srcLen;
@@ -1043,7 +1067,7 @@ SRes LzmaDec_DecodeToBuf(CLzmaDec *p, Byte *dest, SizeT *destLen, const Byte *sr
       curFinishMode = finishMode;
     }
 
-    res = LzmaDec_DecodeToDic(p, outSizeCur, src, &inSizeCur, curFinishMode, status);
+    res = LzmaDec_DecodeToDic(p, outSizeCur, src, &inSizeCur, curFinishMode, status,cb);
     src += inSizeCur;
     inSize -= inSizeCur;
     *srcLen += inSizeCur;
@@ -1161,7 +1185,7 @@ SRes LzmaDec_Allocate(CLzmaDec *p, const Byte *props, unsigned propsSize, ISzAll
 
 SRes LzmaDecode(Byte *dest, SizeT *destLen, const Byte *src, SizeT *srcLen,
     const Byte *propData, unsigned propSize, ELzmaFinishMode finishMode,
-    ELzmaStatus *status, ISzAllocPtr alloc)
+    ELzmaStatus *status, ISzAllocPtr alloc, Decode_Callback cb)
 {
   CLzmaDec p;
   SRes res;
@@ -1176,7 +1200,7 @@ SRes LzmaDecode(Byte *dest, SizeT *destLen, const Byte *src, SizeT *srcLen,
   p.dicBufSize = outSize;
   LzmaDec_Init(&p);
   *srcLen = inSize;
-  res = LzmaDec_DecodeToDic(&p, outSize, src, srcLen, finishMode, status);
+  res = LzmaDec_DecodeToDic(&p, outSize, src, srcLen, finishMode, status,cb);
   *destLen = p.dicPos;
   if (res == SZ_OK && *status == LZMA_STATUS_NEEDS_MORE_INPUT)
     res = SZ_ERROR_INPUT_EOF;
